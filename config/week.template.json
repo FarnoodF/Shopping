@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "start_date": null,
+  "days": 7,
+  "people": null,
+  "meal_slots": [],
+  "recipes": [],
+  "batches": [],
+  "meals": [],
+  "pantry": [],
+  "extras": [],
+  "budget_cad": null,
+  "user_choices_recorded": false,
+  "notes": []
+}

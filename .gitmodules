@@ -1,0 +1,3 @@
+[submodule "vendor/pcexpress-mcp-server"]
+	path = vendor/pcexpress-mcp-server
+	url = https://github.com/FireBall1725/pcexpress-mcp-server.git

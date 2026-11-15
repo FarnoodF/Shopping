@@ -1,0 +1,8 @@
+{
+  "banner": "provigo",
+  "store_id": null,
+  "store_name": null,
+  "fulfillment": null,
+  "live_read_test": "not_run",
+  "live_write_test": "not_run"
+}

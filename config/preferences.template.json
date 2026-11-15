@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "interview_status": "not_started",
+  "updated_at": null,
+  "household": {"people": null, "portion_notes": null},
+  "food": {
+    "allergies": null,
+    "dietary_restrictions": null,
+    "favorite_meals": null,
+    "favorite_cuisines": null,
+    "dislikes": null,
+    "spice_level": null
+  },
+  "eating": {"usual_meals": null, "away_meals": null, "leftovers": null, "snacks_drinks": null},
+  "cooking": {"weekday_minutes": null, "batch_cooking": null, "equipment": null, "freezer_space": null},
+  "shopping": {
+    "retailer": null,
+    "store_name": null,
+    "fulfillment": null,
+    "weekly_budget_cad": null,
+    "budget_includes_fees": null,
+    "preferred_brands": null,
+    "value_organic_preferences": null,
+    "substitution_rules": null,
+    "usual_shopping_day": null
+  },
+  "notes": [],
+  "unanswered": []
+}

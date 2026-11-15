@@ -1,0 +1,30 @@
+# Basket procedure
+
+1. Read the private profile, current weekly plan, and generated shopping list. Resolve unknown allergies/restrictions, the intended meal coverage, budget, store, and fulfillment method. Use answers already provided; do not ask again for standing preferences without a reason.
+2. Read the account cart with `view_cart` before filling it. Use `scripts/mcp_call.py` when the reviewed MCP tools are unavailable in chat. Verify the Provigo banner, open status, signed-in customer, intended store and fulfillment method. If discovery reports no open cart or an anonymous customer, follow [Opening an account cart](#opening-an-account-cart). Preserve existing items and external edits. Save the baseline and progress in `.profile/weeks/<date>/basket.json` so an interrupted run can reconcile and resume.
+3. Search for each ingredient, inspect package size and price basis, and match dietary constraints and preferred brands. A product's title is not sufficient allergen evidence. Distinguish each, packs, bunches, and weight-based quantities. When a package size or unit is unclear, inspect the product page instead of guessing.
+
+   The current product-detail route is incompatible (HTTP 400). Use website details only when labels or average weights remain unavailable in MCP search/cart results, and return to MCP for supported operations. A general report that a pantry ingredient is available does not establish an exact stock quantity: keep its amount unknown, show the recipe use separately, and exclude it from purchasing according to the user's instruction. Do not invent a measured pantry amount just to satisfy the arithmetic helper.
+4. Subtract existing matching basket quantities from the desired total. The API operation sets an absolute quantity. First test one genuinely needed item, read it back, and confirm the expected meaning before filling the remaining basket. Treat variable-weight totals as estimates. Do not keep retrying a write after a timeout until checking the actual cart.
+5. After the last write, fetch the whole account cart again. Compare every planned product code and quantity, including the first grocery, with this single snapshot. A line verified earlier can disappear during later writes. Investigate discrepancies, preserve user edits, and re-read after any correction. Reconcile live line prices with the subtotal and any discounts. Record unavailable products, substitutions, fees, taxes and deposits, and check the total against the agreed budget.
+6. Always finish with an inline Markdown table: item, brand, amount in cart (pack count and size or individual count), and verified line price in CAD. Include all current basket lines on follow-up corrections, identify what changed, and distinguish unrelated pre-existing items. Use **Not listed** for missing brands or internal retailer placeholders, and **Unbranded** when explicitly reported as such. Show the subtotal, known fees/taxes and total or estimated total; identify charges still pending. Mark variable weights/prices as estimates. Include meal coverage, gaps and the cart link. Screenshots and file links do not replace this table. Stop before checkout for this basket-preparation task.
+
+## Opening an account cart
+
+The reviewed connection can update an existing account cart. A browser that displays **Sign In** can accept groceries into a guest cart while the account cart stays empty.
+
+1. Use a **signed-in** Provigo app or website with the intended store and fulfillment method. Add **one unit of one product already on the shopping list**. If the available browser is signed out, ask the shopper to add that product in their usual signed-in app, or to sign in on the website so the agent can add it. Continue product matching while waiting. Leave any guest cart alone.
+2. Immediately run `view_cart` again. Verify that the account cart is open for the intended store and fulfillment method and contains the expected product code and quantity. If the cart or item is still missing, check the account, store and fulfillment selection with the shopper before adding anything else. A missing cart alone does not require renewing the API login.
+3. Save the verified account cart as the baseline. Count the first unit toward the planned quantity. Resume through MCP using absolute quantities and readback. If a separate guest basket was already populated, use the account readback to determine exactly what remains to add.
+
+## Computer-use fallback
+
+Use the documented computer-use API in the current session. Claim/reuse the relevant Provigo browser tab, or open `https://www.provigo.ca/en`. Read the loaded page after every action group; initial page hydration may replace controls, so re-observe before retrying a stale control. Prefer accessible names over hard-coded coordinates or IDs. Do not use hidden internal app state, network interception, or credential extraction.
+
+Check sign-in, the selected store, and pickup/delivery before comparing products. Use the site's product search, product-detail pages, and quantity controls. After a mutation, verify the basket line rather than relying on a click succeeding. Follow the browser tool's current rules for login, consent, CAPTCHA, screenshots, and handoff. Save any screenshot under `.profile/`.
+
+If the website returns **Access Denied**, stop browser writes and preserve progress privately. Resume through the reviewed connection once the signed-in cart is available. On two equivalent unexplained mutation failures, stop the failing path and preserve progress. Ask for the specific missing user action or use a supported alternative; do not claim success or silently start a different store basket.
+
+## Private basket record
+
+Keep `stage`, `store`, `fulfillment`, `baseline`, `items`, `subtotal`, `fees`, `unresolved`, `verified_at`, and `next_action`. Each item should identify its ingredient key(s), product code/URL, retailer-reported brand, display brand, pack size, required amount, quantity before, target quantity, verified quantity after, unit/line price, and any substitution rationale. Do not store passwords or token strings here.
