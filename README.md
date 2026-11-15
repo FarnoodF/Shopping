@@ -44,3 +44,9 @@ Profiles, credentials, meal plans, cart snapshots, and generated PDFs are stored
 - [Contributing](CONTRIBUTING.md) covers local tests, synthetic fixtures, and the requirements for retailer changes.
 - [Security reporting](SECURITY.md) explains how to report a vulnerability privately.
 - [Integration security review](docs/security-review.md) documents the scope and limitations of the pinned upstream code.
+
+## License
+
+Shopping’s own code is licensed under the GNU Affero General Public License, version 3 only (`AGPL-3.0-only`). See the [full license](LICENSE).
+
+The PC Express submodule carries its [upstream license](https://github.com/FireBall1725/pcexpress-mcp-server/blob/1b131c91bdcabeaee317c70e937592878d201668/LICENSE).
