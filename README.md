@@ -1,61 +1,46 @@
 # Shopping
 
-A local grocery agent for learning preferences, planning a week of meals, and preparing a Provigo basket. Personal information stays in the Git-ignored `.profile/` directory. General skills, code, procedures, and the reviewed upstream dependency are version controlled.
+A local grocery-planning assistant for Codex. Start with the meals you want to cook and the food you already have. Shopping calculates what to buy, matches the list to products at your store, and prepares a cart you can review before checkout.
 
-## Use in this project
+**Provigo** is the first supported store, through an unofficial PC Express integration. The meal planner also works without a retailer account.
 
-Ask the agent to **learn my shopping preferences**, **plan this week's meals**, **fill my Provigo basket**, or **generate my cart PDF by meal**. The [shop skill](.agents/skills/shop/SKILL.md) lists supported stores and links to each store’s integration instructions. Provigo is the first supported store. The [generate-cart-pdf skill](.agents/skills/generate-cart-pdf/SKILL.md) exports the verified basket.
+## Try it in Codex
 
-The first run follows this order:
+Open this repository in Codex. For a first run, ask “Plan four dinners for next week. Ask what I already have, then work out what I need to buy.” You can also invoke a project skill directly.
 
-1. Learn household, tastes, eating/cooking patterns, and shopping habits.
-2. Ask which meals to make for explicit dates and what food is already available.
-3. Calculate portions and ingredients, subtract pantry stock, and fill the basket.
+| Skill | What you get |
+| --- | --- |
+| [`shopping-profile`](.agents/skills/shopping-profile/SKILL.md) | A private profile of food preferences, dietary constraints, and shopping habits. |
+| [`plan-week`](.agents/skills/plan-week/SKILL.md) | A meal plan and ingredient quantities that account for batch sizes, leftovers, and pantry stock. |
+| [`shop`](.agents/skills/shop/SKILL.md) | A verified account cart with package sizes, quantities, line prices, and a subtotal. |
+| [`generate-cart-pdf`](.agents/skills/generate-cart-pdf/SKILL.md) | A shareable PDF grouped by meal. Shared ingredients are split across dishes, and household items appear under **General**. |
 
-Basket preparation stops before order submission. Setup runs locally without installing a recurring automation, background service, or global MCP connection.
+## Quick start
 
-## Structure
-
-```text
-.agents/skills/       reusable preference, planning, and shopping skills
-src/shopping_agent/   private storage, quantity planner, reviewed retailer adapter
-scripts/             local command entrypoint and Git privacy check
-config/              blank templates and upstream source fingerprints
-docs/                research, security review, interview and shopping procedures
-tests/               quantity, credential, request-boundary, and privacy checks
-vendor/              pinned unofficial PC Express Git submodule
-.profile/            PRIVATE: preferences, credentials, weekly plans and run records
-```
-
-## Setup and verification
-
-Set up a new checkout on the audited platform (CPython 3.14, macOS arm64) with the following commands.
+The dependency lock was verified with CPython 3.14 on macOS with Apple silicon. Run the following commands in a terminal with Git and that version of Python installed.
 
 ```sh
-git submodule update --init
-python3 -m venv .venv
+git clone --recurse-submodules https://github.com/FarnoodF/Shopping.git
+cd Shopping
+python3.14 -m venv .venv
 .venv/bin/python -m pip install --only-binary=:all: --require-hashes -r requirements.lock
+git config --local core.hooksPath .githooks
 .venv/bin/python -I scripts/shop.py init
-git config core.hooksPath .githooks
+.venv/bin/python -I scripts/shop.py status
 ```
 
-The lock contains the exact 32 runtime distributions and downloaded wheel hashes. On another Python/platform, re-resolve upstream requirements from PyPI in a fresh environment, audit the new resolution, and replace the lock after review. Do not silently drop hashes. The source itself uses Python 3.10+.
+The status command reports whether the private profile and retailer login are configured. You can start planning meals before signing in. The source supports Python 3.10 and later. Other Python versions and platforms need their own reviewed wheel hashes. PDF generation uses Pillow and ReportLab, which are available in the Codex workspace runtime.
 
-Developer tools are separate from the runtime lock:
+## Connect a Provigo cart
 
-```sh
-.venv/bin/python -m pip install pytest pytest-socket bandit pip-audit
-.venv/bin/python -m pytest -q
-.venv/bin/python -m pip_audit -r requirements.lock --no-deps --disable-pip
-python3 scripts/check_private_files.py
-```
+The project uses a local Model Context Protocol (MCP) server to search products, read the account cart, and update quantities. Sign in to PC ID and verify the store and fulfillment method before the first cart update. Each shop ends with a fresh cart read, an itemized table, a PDF, and a link for the shopper to review. Checkout is a separate step. See the [connection guide](docs/provigo-api.md) and [cart procedure](docs/shopping-procedure.md).
 
-Tests disable network sockets. On macOS, tests were also run under `sandbox-exec` with network access denied. The test data is synthetic; tests do not authenticate or modify a real basket.
+The integration uses an undocumented retailer API. Product-detail requests returned HTTP 400 in the recorded live checks. The store guide explains when to use the product page to verify a label or package size. See the [Provigo reference](.agents/skills/shop/references/provigo.md).
 
-## Integration status
+## Privacy and development
 
-The unofficial project is cloned at commit `1b131c91bdcabeaee317c70e937592878d201668`. Review found no obvious malware/backdoor in the inspected source, but identified security issues in the stock deployment/login paths. This project uses a local wrapper addressing those paths. See [the security review](docs/security-review.md) and [connection procedure](docs/provigo-api.md).
+Profiles, credentials, meal plans, cart snapshots, and generated PDFs are stored under `.profile/`. Git ignores that directory, and the local commit hook checks staged paths for private files. The directory is unencrypted. Keep it out of shared folders, and review a cart PDF before sharing it.
 
-Live authentication, search, store/cart reads and basket quantity updates have succeeded. Product details remain limited by an HTTP 400 response; use browser details only where needed. Prefer the local MCP tools for shopping, using `scripts/mcp_call.py` if the chat does not expose them directly. See the connection procedure for examples. Every completed basket update includes an item/brand/amount/line-price table and total. Personal observations are saved only in `.profile/`.
-
-`.profile` is excluded from Git and guarded against accidental force-adding by a local commit hook. It is not encrypted, and Git ignore rules do not control independent device/cloud backups. Keep it out of any separate sync configuration.
+- [Contributing](CONTRIBUTING.md) covers local tests, synthetic fixtures, and the requirements for retailer changes.
+- [Security reporting](SECURITY.md) explains how to report a vulnerability privately.
+- [Integration security review](docs/security-review.md) documents the scope and limitations of the pinned upstream code.
